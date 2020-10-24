@@ -9,7 +9,7 @@ title: Hello? World?
 
 Welcome to the site of an greybeard who desires to keep learning.
 
-The site's purpose is to record the discoveries and journeys that I am encountering in everything geeky (and sometime non-geeky)
+The site's purpose is to record the discoveries and journeys that I am encountering in everything geeky (and occasionally non-geeky)
 
 I'll try to keep the snark and the opinions to a minimum... but no promises :)
 
