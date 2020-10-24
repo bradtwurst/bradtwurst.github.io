@@ -1,0 +1,1 @@
+scribe.jpg -- modified from https://s2.geograph.org.uk/geophotos/05/07/37/5073794_5e0d1958_1024x1024.jpg - Attribution-ShareAlike 2.0 Generic (CC BY-SA 2.0)
