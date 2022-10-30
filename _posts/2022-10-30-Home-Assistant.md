@@ -21,7 +21,7 @@ categories: ["iot", "debian", "home assistant", "coral.ai", "cockpit", "certific
     - a lot of issue getting debian to boot after installation
     - needed to do 'expert install' 
     - saying 'yes' when GRUB install asks about 'buggy' uefi firmware
-    - see   {% post_url 2022-10-32-debian-optiplex-7030 %}
+    - see   {% post_url 2022-10-30-debian-optiplex-7030 %}
     - the next steps were
       - install coral.ai drivers -- see [below](#coral-ai-driver-install)
       - remote web admin -- see [below](#cockpit-install)
