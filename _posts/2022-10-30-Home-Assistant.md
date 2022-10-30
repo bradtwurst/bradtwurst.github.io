@@ -36,18 +36,23 @@ I following the guide located [here](https://coral.ai/docs/m2/get-started){:targ
 
 The main steps in section _2a: On Linux_
 - Confirm linux version 
+
 ```shell
 uname -r
 # my install returned 5.10.0-19-amd64
 ```
+
 - if 4.19 or higher, check if the pre-built Apex driver is installed
+
 ```shell
 lsmod | grep apex
 # my install returned no listing
 ```
+
 - if the apex driver is listed, it will need to be addressed / removed
-  - I didn't have this issue - so I don't have knowledge
+- I didn't have this issue - so I don't have knowledge
 - Add the coral.ai packages
+
 ```shell
 # I needed to install curl as the minimal debian install didn't have it
 #   - otherwise, the repo won't be properly signed and supported
@@ -72,8 +77,10 @@ sudo groupadd apex
 
 sudo adduser $USER apex
 ```
+
 - reboot the system
 - verify the module is detected and the pcie driver is loaded
+
 ```shell
 lspci -nn | grep 089a
 # my install returned a device with the 089a id
