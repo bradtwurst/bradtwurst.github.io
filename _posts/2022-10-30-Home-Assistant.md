@@ -213,7 +213,69 @@ cat tls.crt tls.key > cockpit.crt
 # copy it to the cockpit config area
 sudo cp cockpit.crt /etc/cockpit/ws-certs.d
 
-#restart the service
+# restart the service
 sudo systemctl restart cockpit
 
+# validate that the cert is being used
+sudo remotectl certificate
+
+# should list the cockpit.crt
 ```
+
+
+## Install Podman ##
+
+Per [podman website](https://podman.io){:target="_blank"}{:rel="noopener noreferrer"},
+
+Podman is a daemonless container engine for developing, managing, and running OCI Containers on your Linux System. Containers can either be run as root or in rootless mode. Simply put: alias docker=podman
+
+To install,
+
+```shell
+ 
+sudo apt-get -y install podman
+
+```
+
+
+## Install Home Assistant ##
+
+This is done as a container.
+
+Following the docs [here](https://www.redhat.com/sysadmin/automate-your-home){:target="_blank"}{:rel="noopener noreferrer"}
+
+```shell
+# create some of the folders that will be used for persistant info
+
+# i mounted the HDD (spinning rust) at /data
+# hass_config is for the home assistant config data
+# hass_media is for the home assistant media data
+
+# setup the container
+
+# I changed a few things from the linked docs
+
+# # --network=host wasn't allowing external (non-localhost) connections
+#    using -p 8123:8123 instead
+# # there was an error regarding 'dhcp discovery - operation not permitted'
+#    suggestion is that the --cap-add... parameter should be used
+# # --pull=always to get latest home assistant on startup
+# # added read-only volume for /etc/localtime
+
+podman run -d --name homeassistant --cap-add=CAP_NET_RAW,CAP_NET_BIND_SERVICE --restart=unless-stopped -p 8123:8123 -v /etc/localtime:/etc/localtime:ro -v ~/data/container/hass_config:/config:Z -v ~/data/container/hass_media:/media:Z --pull=always homeassistant/home-assistant:stable
+
+```
+
+* then connect to *http://<server ip>:8123*
+
+* you'll be asked to setup the following
+  - setup a user account
+    - name, username, password
+  - home assistant configuration
+    - HA name, location, time zone, altitude, and currency
+    - [elevation finder](https://www.freemaptools.com/elevation-finder.htm){:target="_blank"}{:rel="noopener noreferrer"} can be used to find elevation
+  - request to share analytics
+  - devices and services to add
+    - that can be done later
+    
+
