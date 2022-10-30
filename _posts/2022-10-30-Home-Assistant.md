@@ -91,3 +91,129 @@ ls /dev/apex_0
 # /dev/apex_0
 
 ```
+
+
+## Cockpit Install ##
+
+Per Cockpit's website...
+
+Cockpit is a web-based graphical interface for servers, intended for everyone, especially those who are:
+- new to Linux (including Windows admins)
+- familiar with Linux (and want an easy, graphical way to administer servers)
+- expert admins (who mainly use other tools but want an overview on individual systems)
+
+following the instructions on [Installing Cockpit on Debian 11](https://www.howtoforge.com/how-to-install-cockpit-on-debian-11/){:target="_blank"}{:rel="noopener noreferrer"}
+
+```shell
+
+# by default cockpit is included in Debian 11 default package repository
+apt-get install cockpit -y
+
+# after installing cockpit, we'll also install the podman plugin (for use later)
+apt-get install cockpit-podman -y
+
+# after successful install, start the service and enable it to auto-start on system reboot
+systemctl start cockpit
+systemctl enable cockpit
+
+# you can check the status with
+systemctl status cockpit
+
+# i don't have UFW firewall up so no changes to ufw
+```
+
+the web interface should now be available at *http://your-server-ip:9090*
+
+## Manage Untrusted Cert ##
+
+One of the annoying things is to deal with the 'this web certificate is not trusted'.
+
+So let's 'fix' that.
+
+Since I am running this server on my private network with a non-public top level domain (TLD), I can't use a normal certificate authority, as they require a public TLD.
+
+Instead, we'll set up our own private CA by following the instructions [here](https://dgu2000.medium.com/working-with-self-signed-certificates-in-chrome-walkthrough-edition-a238486e6858){:target="_blank"}{:rel="noopener noreferrer"}
+
+* create the CA
+
+```shell
+# Generate an RSA private key of size 2048:
+
+openssl genrsa -des3 -out rootCA.key 2048
+
+# Generate a root certificate valid for two years:
+
+openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 730 -out rootCA.pem
+
+#To check just created root certificate:
+
+openssl x509 -in rootCA.pem -text -noout
+```
+
+* create the certificate signing request
+
+```shell
+# First, create a private key to be used during the certificate signing process:
+
+openssl genrsa -out tls.key 2048
+
+# Use the private key to create a certificate signing request:
+
+openssl req -new -key tls.key -out tls.csr
+```
+
+* create a config file openssl.cnf
+   * Edit the domain(s) listed under the *alt_names* section, be sure they match the domain name you want to use.
+
+```ini
+# Extensions to add to a certificate request
+basicConstraints       = CA:FALSE
+authorityKeyIdentifier = keyid:always, issuer:always
+keyUsage               = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment
+subjectAltName         = @alt_names
+[ alt_names ]
+DNS.1 = *.yourdomain.home <== use your non-public TLD here
+```
+
+* sign the certificate request using the CA
+
+```shell
+
+# sign the CSR
+openssl x509 -req \
+    -in tls.csr \
+    -CA rootCA.pem \
+    -CAkey rootCA.key \
+    -CAcreateserial \
+    -out tls.crt \
+    -days 730 \
+    -sha256 \
+    -extfile openssl.cnf
+
+# verify the cert
+openssl verify -CAfile rootCA.pem -verify_hostname somehost.yourdomain.home tls.crt
+```
+
+* Add the CA to the trusted CA's
+   - copy the PEM from your server to your Windows PC.  this can be done manually by copying the content within the .pem file on the server and pasting it into a new file using a windows text editor
+   - open an administrator command prompt
+   - execute the following command
+
+```shell
+certutil --addstore -f "ROOT" <path to .pem file>
+```
+
+* Add the cert to the cockpit service
+
+```shell
+
+# join the tls.crt and tls.key into a single file
+cat tls.crt tls.key > cockpit.crt
+
+# copy it to the cockpit config area
+sudo cp cockpit.crt /etc/cockpit/ws-certs.d
+
+#restart the service
+sudo systemctl restart cockpit
+
+```
